@@ -103,8 +103,8 @@ function Get-NewAdmin {
     #>
     
     # Select the principal name for a random user in the $Members object
-    $getAdmin = Get-Random $members.emailaddress # | Where-Object {$_.emailaddress -notlike 'admin@*' -and $_.emailaddress -ne $null}
-    
+    $getAdmin = Get-Random $companyAdmins.emailaddress 
+
     Return $getAdmin
 }
 
@@ -128,7 +128,7 @@ function Get-CompanyAdmins {
     # Get a list of user from the $AdminRoleName and return list
     $role = Get-MsolRole -RoleName $adminRoleName
     $roleMembers = Get-MsolRoleMember -RoleObjectId $role.ObjectId -MemberObjectTypes "User" 
-    return $roleMembers | Where-Object {$_.emailaddress -notlike "admin@*"}
+    return $roleMembers | Where-Object {$_.emailaddress -notlike 'admin@*'}
     
 }
 
