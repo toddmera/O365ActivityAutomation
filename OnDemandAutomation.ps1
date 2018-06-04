@@ -2,8 +2,18 @@
 # Tenant Information
 $tenantName = 'M365x534198'
 # $tenantName = Read-Host "Enter you tenant name ie. M365x534198"
-$tenantPassword = Read-Host "Enter Your Tenant Password" 
+$tenantPassword = Read-Host "Enter you tenant password"
 $adminRoleName = 'Company Administrator'
+############################################################
+
+
+############################################################
+# Initialize variables
+$companyAdmins = $null
+$unlicenedUsers = $null
+$licenedUsers = $null
+
+
 ############################################################
 
 
@@ -27,15 +37,15 @@ function Get-InitialConnection {
     #>
 
     if (Get-Module -ListAvailable -Name MSOnline) {
-        Write-Host "Module Exists"
+        Write-Host "MSOnline Module Exists and does not need to be installed"
     } else {
-        Write-Host "Module Does Not Exist"
+        Write-Host "MSOnline Module Does Not Exist and needs to be installed"
         Import-Module MSOnline
     }
 
     $admin ='Admin@' + $tenantName + '.onmicrosoft.com'
-    $Pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
-    $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $admin, $Pass
+    $pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
+    $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $admin, $pass
 
     Connect-MsolService -Credential $cred
     $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $cred -Authentication  Basic -AllowRedirection
@@ -44,7 +54,7 @@ function Get-InitialConnection {
 }
 
 
-function Connect-RandomAdmin ([string]$randomAdmin){
+function Connect-Admin ([string]$randomAdmin){
      <#
     .SYNOPSIS
     Connect-RandomAdmin - Connects a random admin from the Admin Role specified in $adminRoleName.
@@ -62,8 +72,8 @@ function Connect-RandomAdmin ([string]$randomAdmin){
 
     #>
     $admin = $randomAdmin
-    $Pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
-    $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $admin, $Pass
+    $pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
+    $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $admin, $pass
 
     Connect-MsolService -Credential $cred
 
@@ -93,22 +103,55 @@ function Get-NewAdmin {
     #>
     
     # Select the principal name for a random user in the $Members object
-    $getAdmin = Get-Random $members.emailaddress
-    Write-Host "New Administrator is $getAdmin"
+    $getAdmin = Get-Random $members.emailaddress # | Where-Object {$_.emailaddress -notlike 'admin@*' -and $_.emailaddress -ne $null}
     
     Return $getAdmin
+}
+
+function Get-CompanyAdmins {
+     <#
+    .SYNOPSIS
+    Get-CompanyAdmins - Returns a list of users with the Admin Role specified in $adminRoleName.
+
+    .DESCRIPTION 
+    Get-CompanyAdmins - Returns a list of users with the Admin Role specified in $adminRoleName.
+
+    .EXAMPLE
+    Get-CompanyAdmin
+
+    .NOTES
+    Written by: Todd Mera
+
+    * Website:	http://Quest.com
+
+    #>
+    # Get a list of user from the $AdminRoleName and return list
+    $role = Get-MsolRole -RoleName $adminRoleName
+    $roleMembers = Get-MsolRoleMember -RoleObjectId $role.ObjectId -MemberObjectTypes "User" 
+    return $roleMembers | Where-Object {$_.emailaddress -notlike "admin@*"}
+    
 }
 
 ############################################################
 # Connect as tenant admin to start the whole thing off.
 Get-InitialConnection
 
-# Get a list of user from the $AdminRoleName 
-$role = Get-MsolRole -RoleName $adminRoleName
-$members = Get-MsolRoleMember -RoleObjectId $role.ObjectId -MemberObjectTypes "User"
+$companyAdmins = Get-CompanyAdmins
+
+$companyAdmins | Format-Table
+
 ############################################################
 
+For ($i=0; $i -le 4; $i++){
 
+    $newAdmin = Get-NewAdmin
+
+    Write-Host $i " New current Admin is: " $newAdmin
+    Connect-Admin -randomAdmin $newAdmin
+    Write-Host "Session connected.  Will disconnect and start again."
+    Get-PSSession | Remove-PSSession
+
+} 
 
 ##### Quick and Dirty Tests ##########
 
