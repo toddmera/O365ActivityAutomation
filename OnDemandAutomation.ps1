@@ -116,7 +116,7 @@ $members = Get-MsolRoleMember -RoleObjectId $role.ObjectId -MemberObjectTypes "U
 # $myNewAdmin = Get-NewAdmin
 # Connect-RandomAdmin -randomAdmin $myNewAdmin
 
-$members
+
 
 
 
