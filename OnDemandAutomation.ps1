@@ -5,6 +5,11 @@ $tenantName = 'M365x534198'
 $tenantPassword = Read-Host "Enter you tenant password"
 $adminRoleName = 'Company Administrator'
 $forwardingSMTPEmail = 'SomeAddress@Quest.com'
+
+# Min task an admin will run during one session
+$minAdminTasks = 5
+# Max task an admin will run during one session
+$maxAdminTasks = 10
 ############################################################
 
 
@@ -14,8 +19,7 @@ $companyAdmins = $null
 $unlicenedUsers = $null
 $licenedUsers = $null
 
-$functionList = ("Set-ForwardingEmail", "Remove-ForwardingEmail")
-
+$functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP")
 
 ############################################################
 
@@ -138,7 +142,7 @@ function Get-CompanyAdmins {
 
 function Set-ForwardingSMTP {
     # Get a list of users that do not have forwarding set and set this option.
-    $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingSMTPAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox")} | Sort-Object -Property Name 
+    $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingSMTPAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.emailaddress -notlike "admin*")} 
 
     if ($noForwardMailboxes){
         # Get a random mailbox
@@ -174,12 +178,17 @@ function Remove-ForwardingSMTP {
 
 function Start-RandomActivity {
     # Start some random activity with a new admin.
-    for ($i=0; $i -le 2; $i++){
+    for ($i=0; $i -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $i++){
         $newAdmin = Get-NewAdmin
         Connect-Admin -randomAdmin $newAdmin
-        Set-ForwardingSMTP
-        Remove-ForwardingSMTP
 
+        # Get a random function from the function list.
+        for ($x=0; $x -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $x++){
+
+            $randomFunction = Get-Random -InputObject $functionList
+            Invoke-Expression $randomFunction
+        }
+        
 
          # Kill the session to prepare for new admin session
          Get-PSSession | Remove-PSSession
