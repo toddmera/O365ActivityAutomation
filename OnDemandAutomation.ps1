@@ -4,6 +4,7 @@ $tenantName = 'M365x534198'
 # $tenantName = Read-Host "Enter you tenant name ie. M365x534198"
 $tenantPassword = Read-Host "Enter you tenant password"
 $adminRoleName = 'Company Administrator'
+$forwardingSMTPEmail = 'SomeAddress@Quest.com'
 ############################################################
 
 
@@ -12,6 +13,8 @@ $adminRoleName = 'Company Administrator'
 $companyAdmins = $null
 $unlicenedUsers = $null
 $licenedUsers = $null
+
+$functionList = ("Set-ForwardingEmail", "Remove-ForwardingEmail")
 
 
 ############################################################
@@ -79,6 +82,8 @@ function Connect-Admin ([string]$randomAdmin){
     $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $cred -Authentication  Basic -AllowRedirection
     Import-PSSession $Session -AllowClobber
 
+    Write-Host "New Admin is: $admin"
+
     
 }
 
@@ -131,52 +136,75 @@ function Get-CompanyAdmins {
 }
 
 
-function Start-RandomActivity {
+function Set-ForwardingSMTP {
+    # Get a list of users that do not have forwarding set and set this option.
+    $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingSMTPAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox")} | Sort-Object -Property Name 
 
-    for ($i=0; $i -le 10; $i++){
+    if ($noForwardMailboxes){
+        # Get a random mailbox
+        $randomMailbox = Get-Random -InputObject $noForwardMailboxes
+        
+        # Set forwardingsmtpaddress - This attribute is displayed in the Exchange Admin Portal
+        Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $true -ForwardingSMTPAddress $forwardingSMTPEmail
+
+        Write-Host "Mail for $randomMailbox has been forwarded to $forwardingSMTPEmail"
+    }
+   
+}
+
+function Remove-ForwardingSMTP {
+     # Get list of users that have email forwarding set and turn it off
+     $forwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingSMTPAddress -and $_.RecipientTypeDetails -eq "UserMailbox")} | Sort-Object -Property Name 
+
+     if ($forwardMailboxes){
+        # Get a random mailbox
+        $randomMailbox = Get-Random -InputObject $forwardMailboxes
+
+        # Remove the forwarding option
+        Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $false -ForwardingSMTPAddress $null
+
+        Write-Host "Mail for $randomMailbox has been set to Null"
+
+     }
+
+
+}
+
+
+
+function Start-RandomActivity {
+    # Start some random activity with a new admin.
+    for ($i=0; $i -le 2; $i++){
         $newAdmin = Get-NewAdmin
         Connect-Admin -randomAdmin $newAdmin
-
-        $licenedUsers = Get-MsolUser -All | Where-Object {$_.IsLicensed -eq $true -and $_.UserPrincipalName -notlike "admin@*"} 
-        
-        
+        Set-ForwardingSMTP
+        Remove-ForwardingSMTP
 
 
-
-
-        Get-PSSession | Remove-PSSession
-
+         # Kill the session to prepare for new admin session
+         Get-PSSession | Remove-PSSession
     }
+
     
+    # Kill the session to prepare for new admin session
+    Get-PSSession | Remove-PSSession
+        
 }
 
 ############################################################
 # Connect as tenant admin to start the whole thing off.
 Get-InitialConnection
+Get-PSSession
 
 $companyAdmins = Get-CompanyAdmins
 
 $companyAdmins | Format-Table
 
+Start-RandomActivity
+
 ############################################################
 
 
-# For ($i=0; $i -le 4; $i++){
-
-#     $newAdmin = Get-NewAdmin
-
-#     Write-Host $i " New current Admin is: " $newAdmin
-#     Connect-Admin -randomAdmin $newAdmin
-#     Write-Host "Session connected.  Will disconnect and start again."
-#     Get-PSSession | Remove-PSSession
-
-# } 
-
-##### Quick and Dirty Tests ##########
-
-
-# $myNewAdmin = Get-NewAdmin
-# Connect-RandomAdmin -randomAdmin $myNewAdmin
 
 
 
