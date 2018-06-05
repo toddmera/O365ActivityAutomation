@@ -1,8 +1,6 @@
 ############################################################
 # Tenant Information
 $tenantName = 'M365x534198'
-# $tenantName = Read-Host "Enter you tenant name ie. M365x534198"
-$tenantPassword = Read-Host "Enter you tenant password"
 $adminRoleName = 'Company Administrator'
 $forwardingSMTPEmail = 'SomeAddress@Quest.com'
 
@@ -10,6 +8,9 @@ $forwardingSMTPEmail = 'SomeAddress@Quest.com'
 $minAdminTasks = 5
 # Max task an admin will run during one session
 $maxAdminTasks = 10
+
+# $tenantName = "put password here if you like.  You will have to comment out the line below and uncomment this one"
+$tenantPassword = Read-Host "Enter you tenant password"
 ############################################################
 
 
