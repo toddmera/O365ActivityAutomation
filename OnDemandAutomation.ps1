@@ -53,7 +53,6 @@ function Get-InitialConnection {
 
 }
 
-
 function Connect-Admin ([string]$randomAdmin){
      <#
     .SYNOPSIS
@@ -82,7 +81,6 @@ function Connect-Admin ([string]$randomAdmin){
 
     
 }
-
 
 function Get-NewAdmin {
      <#
@@ -132,6 +130,26 @@ function Get-CompanyAdmins {
     
 }
 
+
+function Start-RandomActivity {
+
+    for ($i=0; $i -le 10; $i++){
+        $newAdmin = Get-NewAdmin
+        Connect-Admin -randomAdmin $newAdmin
+
+        $licenedUsers = Get-MsolUser -All | Where-Object {$_.IsLicensed -eq $true -and $_.UserPrincipalName -notlike "admin@*"} 
+        
+        
+
+
+
+
+        Get-PSSession | Remove-PSSession
+
+    }
+    
+}
+
 ############################################################
 # Connect as tenant admin to start the whole thing off.
 Get-InitialConnection
@@ -142,16 +160,17 @@ $companyAdmins | Format-Table
 
 ############################################################
 
-For ($i=0; $i -le 4; $i++){
 
-    $newAdmin = Get-NewAdmin
+# For ($i=0; $i -le 4; $i++){
 
-    Write-Host $i " New current Admin is: " $newAdmin
-    Connect-Admin -randomAdmin $newAdmin
-    Write-Host "Session connected.  Will disconnect and start again."
-    Get-PSSession | Remove-PSSession
+#     $newAdmin = Get-NewAdmin
 
-} 
+#     Write-Host $i " New current Admin is: " $newAdmin
+#     Connect-Admin -randomAdmin $newAdmin
+#     Write-Host "Session connected.  Will disconnect and start again."
+#     Get-PSSession | Remove-PSSession
+
+# } 
 
 ##### Quick and Dirty Tests ##########
 
