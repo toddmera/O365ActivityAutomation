@@ -209,7 +209,7 @@ $companyAdmins = Get-CompanyAdmins
 
 $companyAdmins | Format-Table
 
-Start-RandomActivity
+# Start-RandomActivity
 
 ############################################################
 
