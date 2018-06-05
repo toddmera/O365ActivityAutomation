@@ -142,7 +142,7 @@ function Get-CompanyAdmins {
 
 function Set-ForwardingSMTP {
     # Get a list of users that do not have forwarding set and set this option.
-    $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingSMTPAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.emailaddress -notlike "admin*")} 
+    $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingSMTPAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.Name -notlike "admin*")} 
 
     if ($noForwardMailboxes){
         # Get a random mailbox
@@ -209,7 +209,7 @@ $companyAdmins = Get-CompanyAdmins
 
 $companyAdmins | Format-Table
 
-# Start-RandomActivity
+Start-RandomActivity
 
 ############################################################
 
