@@ -7,7 +7,7 @@ $forwardingSMTPEmail = 'SomeAddress@Quest.com'
 # Min task an admin will run during one session
 $minAdminTasks = 5
 # Max task an admin will run during one session
-$maxAdminTasks = 10
+$maxAdminTasks = 25
 
 # $tenantName = "put password here if you like.  You will have to comment out the line below and uncomment this one"
 $tenantPassword = Read-Host "Enter you tenant password"
@@ -17,10 +17,10 @@ $tenantPassword = Read-Host "Enter you tenant password"
 ############################################################
 # Initialize variables
 $companyAdmins = $null
-$unlicenedUsers = $null
-$licenedUsers = $null
 
-$functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP", "Set-ForwardingSMTPAlias", "Remove-ForwardingSMTPAlias")
+$functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP", `
+                "Set-ForwardingSMTPAlias", "Remove-ForwardingSMTPAlias",`
+                "Set-RandMailboxPermissions", "Remove-RandMailboxPermissions")
 
 ############################################################
 
@@ -140,10 +140,9 @@ function Get-CompanyAdmins {
     
 }
 
-
 function Set-ForwardingSMTP {
     # Get a list of users that do not have ForwardingSMTPAddress set and set this option.
-    $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingSMTPAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.Name -notlike "admin*")} 
+    $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingSMTPAddress -eq $null -and $_.forwardingaddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.Name -notlike "admin*")} 
 
     if ($noForwardMailboxes){
         # Get a random mailbox
@@ -153,6 +152,8 @@ function Set-ForwardingSMTP {
         Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $true -ForwardingSMTPAddress $forwardingSMTPEmail
 
         Write-Host "Mail for $randomMailbox has been forwarded to $forwardingSMTPEmail"
+    } else {
+        Write-Host "Nothing to process"
     }
    
 }
@@ -168,8 +169,10 @@ function Remove-ForwardingSMTP {
         # Remove the forwarding option
         Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $false -ForwardingSMTPAddress $null
 
-        Write-Host "Mail for $randomMailbox has been set to Null"
+        Write-Host "ForwardingSMTPAddress and DeliverToMailboxAndForward for $randomMailbox has been set to Null"
 
+     } else {
+        Write-Host "Nothing to process"
      }
 
 
@@ -177,7 +180,7 @@ function Remove-ForwardingSMTP {
 
 function Set-ForwardingSMTPAlias {
      # Get a list of users that do not have ForwardingAddress set and set this option.
-     $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.Name -notlike "admin*")} 
+     $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingAddress -eq $null -and $_.ForwardingSMTPAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.Name -notlike "admin*")} 
 
      if ($noForwardMailboxes){
          # Get a random mailbox
@@ -186,10 +189,12 @@ function Set-ForwardingSMTPAlias {
 
          if ($randomMailbox -ne $forwardToAlias) {
          # Set forwardingaddress - This attribute is NOT displayed in the Exchange Admin Portal.  This is Outlook Rule.
-         Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $true -ForwardingAddress $forwardToAlias.Alias
+         Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $true -ForwardingAddress $forwardToAlias.Alias -Confirm:$false
  
-         Write-Host "Mail for $randomMailbox has been forwarded to $forwardToAlias"
+         Write-Host "ForwardingAddress for $randomMailbox has been set to $forwardToAlias"
          }
+     } else {
+        Write-Host "Nothing to process"
      }
 
 
@@ -206,15 +211,59 @@ function Remove-ForwardingSMTPAlias {
        # Remove the forwarding option
        Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $false -ForwardingAddress $null
 
-       Write-Host "Mail for $randomMailbox has been set to Null"
+       Write-Host "ForwardingAddress and DeliverToMailboxAndForward for $randomMailbox has been set to Null"
+    } else {
+        Write-Host "Nothing to process"
     }
 
 }
 
+function Set-RandMailboxPermissions {
+    # Get random mailboxes that have no permissions assigned to other users 
+    $mbxs = Get-Mailbox | Where-Object {($_.RecipientTypeDetails -eq "UserMailbox" -and $_.Name -notlike "admin*")}
+
+    # Get 2 random mailboxes - $mbxIdentity will be assigned full control over $mbxUser mailbox
+    $mbxIdentity = Get-Random -InputObject $mbxs
+    $mbxUser = Get-Random -InputObject $mbxs
+
+    # Check to see if the mailboxes are the same.  If not, set permissions
+    if ($mbxIdentity -ne $mbxUser) {
+        Add-MailboxPermission -Identity $mbxIdentity.Alias -User $mbxUser.Alias -AccessRights FullAccess -InheritanceType ALL
+        Write-Host "$mbxIdentity has Full Control of mailbox $mbxUser"
+        
+    } else {
+        Write-Host "Nothing to process"
+    }
+    
+}
+
+function Remove-RandMailboxPermissions {
+    # Get mailboxes that have been assigned permissions to another mailbox
+    $mbxWithPerms = Get-Mailbox | Get-MailboxPermission | `
+        Where-Object { `
+            ($_.user.tostring() -ne "NT AUTHORITY\SELF") -and `
+            ($_.user.tostring() -notlike "admin*") -and `
+            ($_.user.tostring() -notlike "Discovery*") -and `
+            ($_.IsInherited -eq $false)}
+
+    if ($mbxWithPerms) {
+        # Get a random mailbox
+        $randomMailbox = Get-Random -InputObject $mbxWithPerms
+        $mbxIdentity = $randomMailbox.Identity
+        $mbxUser = $randomMailbox.User
+
+        Remove-MailboxPermission -Identity $mbxIdentity -User $mbxUser -AccessRights FullAccess -InheritanceType ALL -Confirm:$false
+        Write-Host "Mailbox permission for $mbxIdentity have been removed from $mbxUser"
+    } else {
+        Write-Host "Nothing to process"
+    }
+
+}
 
 function Start-RandomActivity {
     # Start some random activity with a new admin.
-    for ($i=0; $i -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $i++){
+    for ($i=0; $i -le 1000; $i++){
+    # for ($i=0; $i -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $i++){
         $newAdmin = Get-NewAdmin
         Connect-Admin -randomAdmin $newAdmin
 
@@ -222,17 +271,13 @@ function Start-RandomActivity {
         for ($x=0; $x -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $x++){
 
             $randomFunction = Get-Random -InputObject $functionList
+            Write-Host "Running $randomFunction"
             Invoke-Expression $randomFunction
-        }
-        
+        }        
 
          # Kill the session to prepare for new admin session
          Get-PSSession | Remove-PSSession
     }
-
-    
-    # Kill the session to prepare for new admin session
-    Get-PSSession | Remove-PSSession
         
 }
 
@@ -245,7 +290,8 @@ $companyAdmins = Get-CompanyAdmins
 
 $companyAdmins | Format-Table
 
-# Start-RandomActivity
+Start-RandomActivity
+# Set-RandMailboxPermissions
 
 ############################################################
 
