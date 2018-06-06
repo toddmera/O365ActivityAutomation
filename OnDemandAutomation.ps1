@@ -271,7 +271,7 @@ function Start-RandomActivity {
         for ($x=0; $x -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $x++){
 
             $randomFunction = Get-Random -InputObject $functionList
-            Write-Host "Running $randomFunction"
+            Write-Host "***** Running $randomFunction *****"
             Invoke-Expression $randomFunction
         }        
 
