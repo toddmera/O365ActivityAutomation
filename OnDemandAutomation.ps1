@@ -20,7 +20,7 @@ $companyAdmins = $null
 $unlicenedUsers = $null
 $licenedUsers = $null
 
-$functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP")
+$functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP", "Set-ForwardingSMTPAlias", "Remove-ForwardingSMTPAlias")
 
 ############################################################
 
@@ -142,7 +142,7 @@ function Get-CompanyAdmins {
 
 
 function Set-ForwardingSMTP {
-    # Get a list of users that do not have forwarding set and set this option.
+    # Get a list of users that do not have ForwardingSMTPAddress set and set this option.
     $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingSMTPAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.Name -notlike "admin*")} 
 
     if ($noForwardMailboxes){
@@ -175,6 +175,41 @@ function Remove-ForwardingSMTP {
 
 }
 
+function Set-ForwardingSMTPAlias {
+     # Get a list of users that do not have ForwardingAddress set and set this option.
+     $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.Name -notlike "admin*")} 
+
+     if ($noForwardMailboxes){
+         # Get a random mailbox
+         $randomMailbox = Get-Random -InputObject $noForwardMailboxes
+         $forwardToAlias = Get-Random -InputObject $noForwardMailboxes
+
+         if ($randomMailbox -ne $forwardToAlias) {
+         # Set forwardingaddress - This attribute is NOT displayed in the Exchange Admin Portal.  This is Outlook Rule.
+         Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $true -ForwardingAddress $forwardToAlias.Alias
+ 
+         Write-Host "Mail for $randomMailbox has been forwarded to $forwardToAlias"
+         }
+     }
+
+
+}
+
+function Remove-ForwardingSMTPAlias {
+    # Get list of users that have email forwarding set and turn it off
+    $forwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingAddress -and $_.RecipientTypeDetails -eq "UserMailbox")} | Sort-Object -Property Name 
+
+    if ($forwardMailboxes){
+       # Get a random mailbox
+       $randomMailbox = Get-Random -InputObject $forwardMailboxes
+
+       # Remove the forwarding option
+       Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $false -ForwardingAddress $null
+
+       Write-Host "Mail for $randomMailbox has been set to Null"
+    }
+
+}
 
 
 function Start-RandomActivity {
@@ -210,7 +245,7 @@ $companyAdmins = Get-CompanyAdmins
 
 $companyAdmins | Format-Table
 
-Start-RandomActivity
+# Start-RandomActivity
 
 ############################################################
 
