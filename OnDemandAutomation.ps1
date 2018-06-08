@@ -148,7 +148,7 @@ function Set-ForwardingSMTP {
         # Get a random mailbox
         $randomMailbox = Get-Random -InputObject $noForwardMailboxes
         
-        # Set forwardingsmtpaddress - This attribute is displayed in the Exchange Admin Portal
+        # Set forwardingsmtpaddress - This attribute does NOT get displayed in the Exchange Admin Portal
         Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $true -ForwardingSMTPAddress $forwardingSMTPEmail
 
         Write-Host "Mail for $randomMailbox has been forwarded to $forwardingSMTPEmail"
@@ -188,7 +188,7 @@ function Set-ForwardingSMTPAlias {
          $forwardToAlias = Get-Random -InputObject $noForwardMailboxes
 
          if ($randomMailbox -ne $forwardToAlias) {
-         # Set forwardingaddress - This attribute is NOT displayed in the Exchange Admin Portal.  This is Outlook Rule.
+         # Set forwardingaddress - This attribute is displayed in the Exchange Admin Portal.
          Set-Mailbox -Identity $randomMailbox.Alias -DeliverToMailboxAndForward $true -ForwardingAddress $forwardToAlias.Alias -Confirm:$false
  
          Write-Host "ForwardingAddress for $randomMailbox has been set to $forwardToAlias"
