@@ -7,7 +7,7 @@ $forwardingSMTPEmail = 'SomeAddress@Quest.com'
 # Min task an admin will run during one session
 $minAdminTasks = 5
 # Max task an admin will run during one session
-$maxAdminTasks = 25
+$maxAdminTasks = 10
 
 # $tenantName = "put password here if you like.  You will have to comment out the line below and uncomment this one"
 $tenantPassword = Read-Host "Enter you tenant password"
@@ -262,7 +262,7 @@ function Remove-RandMailboxPermissions {
 
 function Start-RandomActivity {
     # Start some random activity with a new admin.
-    for ($i=0; $i -le 1000; $i++){
+    for ($i=0; $i -le 5; $i++){
     # for ($i=0; $i -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $i++){
         $newAdmin = Get-NewAdmin
         Connect-Admin -randomAdmin $newAdmin
