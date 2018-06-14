@@ -4,9 +4,12 @@ $tenantName = 'M365x534198'
 $adminRoleName = 'Company Administrator'
 $forwardingSMTPEmail = 'SomeAddress@Quest.com'
 
-# Min task an admin will run during one session
+# Number of cycles to pick random admin and perform tasks
+$adminCycles = 10
+
+# Min task an admin will run during one cycle
 $minAdminTasks = 5
-# Max task an admin will run during one session
+# Max task an admin will run during one cycle
 $maxAdminTasks = 10
 
 # $tenantName = "put password here if you like.  You will have to comment out the line below and uncomment this one"
@@ -19,7 +22,7 @@ $tenantPassword = Read-Host "Enter you tenant password"
 $companyAdmins = $null
 
 $functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP", `
-                "Set-ForwardingSMTPAlias", "Remove-ForwardingSMTPAlias",`
+                "Set-ForwardingAlias", "Remove-ForwardingAlias",`
                 "Set-RandMailboxPermissions", "Remove-RandMailboxPermissions")
 
 ############################################################
@@ -178,7 +181,7 @@ function Remove-ForwardingSMTP {
 
 }
 
-function Set-ForwardingSMTPAlias {
+function Set-ForwardingAlias {
      # Get a list of users that do not have ForwardingAddress set and set this option.
      $noForwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingAddress -eq $null -and $_.ForwardingSMTPAddress -eq $null -and $_.RecipientTypeDetails -eq "UserMailbox" -and $_.Name -notlike "admin*")} 
 
@@ -200,7 +203,7 @@ function Set-ForwardingSMTPAlias {
 
 }
 
-function Remove-ForwardingSMTPAlias {
+function Remove-ForwardingAlias {
     # Get list of users that have email forwarding set and turn it off
     $forwardMailboxes = Get-Mailbox | Where-Object {($_.ForwardingAddress -and $_.RecipientTypeDetails -eq "UserMailbox")} | Sort-Object -Property Name 
 
@@ -262,7 +265,7 @@ function Remove-RandMailboxPermissions {
 
 function Start-RandomActivity {
     # Start some random activity with a new admin.
-    for ($i=0; $i -le 5; $i++){
+    for ($i=0; $i -le $adminCycles; $i++){
     # for ($i=0; $i -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $i++){
         $newAdmin = Get-NewAdmin
         Connect-Admin -randomAdmin $newAdmin
