@@ -3,9 +3,10 @@
 $tenantName = 'M365x534198'
 $adminRoleName = 'Company Administrator'
 $forwardingSMTPEmail = 'SomeAddress@Quest.com'
+$sharedMailboxes = ("Sales Deptartment", "Marketing Department", "Purchasing Department", "'RandD Department'", "HR Department", "Development Department", "Support Department")
 
 # Number of cycles to pick random admin and perform tasks
-$adminCycles = 10
+$adminCycles = 50
 
 # Min task an admin will run during one cycle
 $minAdminTasks = 5
@@ -20,10 +21,12 @@ $tenantPassword = Read-Host "Enter you tenant password"
 ############################################################
 # Initialize variables
 $companyAdmins = $null
+$functionList = ("Create-SharedMailbox", "Remove-SharedMailbox")
 
-$functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP", `
-                "Set-ForwardingAlias", "Remove-ForwardingAlias",`
-                "Set-RandMailboxPermissions", "Remove-RandMailboxPermissions")
+# $functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP", `
+#                "Set-ForwardingAlias", "Remove-ForwardingAlias",`
+#                "Set-RandMailboxPermissions", "Remove-RandMailboxPermissions" `
+#                "Create-SharedMailbox", "Remove-SharedMailbox")
 
 ############################################################
 
@@ -263,6 +266,40 @@ function Remove-RandMailboxPermissions {
 
 }
 
+function Create-SharedMailbox {
+    # Get array of share mailbox names from $sharedMailboxName in config.
+    $sharedMailboxName = Get-Random $sharedMailboxes
+
+    # Create a new random shared mailbox if it does not already exist.
+    if (Get-Mailbox -RecipientTypeDetails SharedMailbox | Where-Object Name -EQ $sharedMailboxName) {
+        Write-Host "$sharedMailboxName already exists.  This loop will exit."        
+    } else {
+        Write-Host "$sharedMailboxName does NOT exists.  We will attenpt to create this now."
+        New-Mailbox -Shared -Name $sharedMailboxName -DisplayName $sharedMailboxName  `
+                -Alias ($sharedMailboxName.Split(" ")[0] + ((Get-Random -Maximum 1000).ToString()).PadLeft(4,'0'))
+
+    }
+
+}    
+
+function Remove-SharedMailbox {
+    # Get a list of existing shared mailboxes.
+    $sharedMailboxes = [array](Get-Mailbox -RecipientTypeDetails SharedMailbox)
+    $randomSharedMailbox = Get-Random($sharedMailboxes)
+
+    if ($sharedMailboxes) {
+        # Get Random Shared Mailbox
+        if ($sharedMailboxes.Length -gt 1) {           
+            Remove-Mailbox -Identity $randomSharedMailbox.Alias -Confirm:$false
+            
+        } elseif ($sharedMailboxes.Length -eq 1) {
+            Remove-Mailbox -Identity $randomSharedMailbox.Alias -Confirm:$false
+     
+        }
+    }
+      
+}
+
 function Start-RandomActivity {
     # Start some random activity with a new admin.
     for ($i=0; $i -le $adminCycles; $i++){
@@ -287,14 +324,14 @@ function Start-RandomActivity {
 ############################################################
 # Connect as tenant admin to start the whole thing off.
 Get-InitialConnection
-Get-PSSession
+# Get-PSSession
 
 $companyAdmins = Get-CompanyAdmins
 
 $companyAdmins | Format-Table
 
 Start-RandomActivity
-# Set-RandMailboxPermissions
+
 
 ############################################################
 
