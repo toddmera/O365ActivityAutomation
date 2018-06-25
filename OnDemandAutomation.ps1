@@ -21,12 +21,11 @@ $tenantPassword = Read-Host "Enter you tenant password"
 ############################################################
 # Initialize variables
 $companyAdmins = $null
-$functionList = ("Create-SharedMailbox", "Remove-SharedMailbox")
 
-# $functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP", `
-#                "Set-ForwardingAlias", "Remove-ForwardingAlias",`
-#                "Set-RandMailboxPermissions", "Remove-RandMailboxPermissions" `
-#                "Create-SharedMailbox", "Remove-SharedMailbox")
+$functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP", `
+                "Set-ForwardingAlias", "Remove-ForwardingAlias",`
+                "Set-RandMailboxPermissions", "Remove-RandMailboxPermissions" `
+                "Create-SharedMailbox", "Remove-SharedMailbox")
 
 ############################################################
 
