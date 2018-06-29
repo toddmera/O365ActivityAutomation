@@ -24,7 +24,7 @@ $companyAdmins = $null
 
 $functionList = ("Set-ForwardingSMTP", "Remove-ForwardingSMTP", `
                 "Set-ForwardingAlias", "Remove-ForwardingAlias",`
-                "Set-RandMailboxPermissions", "Remove-RandMailboxPermissions" `
+                "Set-RandMailboxPermissions", "Remove-RandMailboxPermissions", `
                 "Create-SharedMailbox", "Remove-SharedMailbox")
 
 ############################################################
