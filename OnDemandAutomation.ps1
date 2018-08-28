@@ -1,6 +1,6 @@
 ############################################################
 # Tenant Information
-$tenantName = 'M365x534198'
+$tenantName = 'M365x774467'
 $adminRoleName = 'Company Administrator'
 $forwardingSMTPEmail = 'SomeAddress@Quest.com'
 $sharedMailboxes = ("Sales Deptartment", "Marketing Department", "Purchasing Department", "'RandD Department'", "HR Department", "Development Department", "Support Department")
@@ -312,12 +312,11 @@ function Start-RandomActivity {
             $randomFunction = Get-Random -InputObject $functionList
             Write-Host "***** Running $randomFunction *****"
             Invoke-Expression $randomFunction
-        }        
+        }
 
          # Kill the session to prepare for new admin session
          Get-PSSession | Remove-PSSession
     }
-        
 }
 
 ############################################################
