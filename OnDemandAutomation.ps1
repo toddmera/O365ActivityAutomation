@@ -53,6 +53,7 @@ function Get-InitialConnection {
         Write-Host "MSOnline Module Exists and does not need to be installed"
     } else {
         Write-Host "MSOnline Module Does Not Exist and needs to be installed"
+        Install-Module MSOnline
         Import-Module MSOnline
     }
 
