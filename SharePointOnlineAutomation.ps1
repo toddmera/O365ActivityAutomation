@@ -25,14 +25,14 @@ $CompanySiteURL = "https://$tenantName.sharepoint.com/"
 function Get-InitialConnectionSPO {
     <#
    .SYNOPSIS
-   Initial-Connection - Logs in as Tenant Admin and kicks off the process.
+   Get-InitialConnectionSPO - Logs in as Tenant Admin and kicks off the process.
 
    .DESCRIPTION 
    We must connect as Admin and get a list of Company Administrators. 
    We also check to see if the MSOnline module is installed and if not install.
 
    .EXAMPLE
-   Initial-Connection
+   Get-InitialConnectionSPO
 
    .NOTES
    Written by: Todd Mera
