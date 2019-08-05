@@ -2,15 +2,56 @@
 # Tenant Information
 $tenantName = 'M365x109645'
 
+# $tenantName = "put password here if you like.  You will have to comment out the line below and uncomment this one"
 $tenantPassword = Read-Host "Enter you tenant password"
 
-$AdminSiteName = "https://$tenantName-admin.sharepoint.com/"
-$spolSiteBaseURL = 'sharepoint.com/sites/'
+# Number of cycles to pick random admin and perform tasks
+$adminCycles = 50
 
-$admin ='Admin@' + $tenantName + '.onmicrosoft.com'
-$pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
-$AzureSPOLCreds = New-Object System.Management.Automation.PSCredential ($admin, $pass)
+# Min task an admin will run during one cycle
+$minAdminTasks = 5
+# Max task an admin will run during one cycle
+$maxAdminTasks = 10
 
-Connect-SPOService $AdminSiteName -Credential $AzureSPOLCreds
+############################################################
 
-Get-SPOSite
+############################################################
+# SharePoint Sites, etc.
+
+$AdminSiteURL = "https://$tenantName-admin.sharepoint.com/"
+$CompanySiteURL = "https://$tenantName.sharepoint.com/"
+
+
+function Get-InitialConnectionSPO {
+    <#
+   .SYNOPSIS
+   Initial-Connection - Logs in as Tenant Admin and kicks off the process.
+
+   .DESCRIPTION 
+   We must connect as Admin and get a list of Company Administrators. 
+   We also check to see if the MSOnline module is installed and if not install.
+
+   .EXAMPLE
+   Initial-Connection
+
+   .NOTES
+   Written by: Todd Mera
+
+   * Website:	http://Quest.com
+
+   #>
+
+   if (Get-Module -ListAvailable -Name SharePointPnPPowerShellOnline) {
+       Write-Host "SharePoint PnP Power Shell Online Module Exists and does not need to be installed"
+   } else {
+       Write-Host "Share Point PnP Power Shell Online Module Does Not Exist and needs to be installed"
+       Install-Module SharePointPnPPowerShellOnline -AllowClobber
+   }
+
+   $admin ='Admin@' + $tenantName + '.onmicrosoft.com'
+   $pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
+   $AzureSPOLCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($admin, $pass)
+
+   Connect-PNPOnline $CompanySiteURL -Credential $AzureSPOLCreds
+
+}
