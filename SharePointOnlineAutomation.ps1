@@ -1,6 +1,6 @@
 ############################################################
 # Tenant Information
-$tenantName = 'M365x534198'
+$tenantName = 'M365x109645'
 
 $tenantPassword = Read-Host "Enter you tenant password"
 
