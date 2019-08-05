@@ -55,3 +55,53 @@ function Get-InitialConnectionSPO {
    Connect-PNPOnline $CompanySiteURL -Credential $AzureSPOLCreds
 
 }
+
+function Connect-RandomSPOUser {
+    $pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
+    $AzureSPOLCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($newUser, $pass)
+ 
+    Connect-PNPOnline $CompanySiteURL -Credential $AzureSPOLCreds
+
+}
+
+function Get-SPOUsers {
+    <#
+   .SYNOPSIS
+   Get-SPOUsers - Returns a list of SPO users with non-blank email address.
+
+   .DESCRIPTION 
+   Get-SPOUsers - Returns a list of users.
+
+   .EXAMPLE
+    Get-SPOUsers
+
+   .NOTES
+   Written by: Todd Mera
+
+   * Website:	http://Quest.com
+
+   #>
+   # Get a list of user from the $AdminRoleName and return list
+   $spousers = Get-PnPUser | ? Email -ne ""
+}
+
+function Get-RandomSPOUser {
+    
+    # Get a random user and return email address.
+    $getSPOUser = Get-Random $spousers.Email 
+
+    Return $getSPOUser
+
+}
+
+
+function Start-RandomSPOActivity {
+
+
+    $newUser = Get-RandomSPOUser
+    $newUser
+    Connect-RandomSPOUser
+
+}
+
+InitialConnectionSPO
