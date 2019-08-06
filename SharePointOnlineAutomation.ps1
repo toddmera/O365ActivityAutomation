@@ -18,7 +18,6 @@ $minUserTasks = 5
 # Max task an user will run during one cycle
 $maxUserTasks = 10
 ############################################################
-$randomSubWeb = ""
 
 ############################################################
 # SharePoint Sites, etc.
@@ -30,8 +29,8 @@ $CompanySiteURL = "https://$tenantName.sharepoint.com/"
 
 ############################################################
 # Function list.  We will randomly run these as different users.
-# $spoFunctionList = ("Add-NewSubWeb", "Remove-SubWeb")
-$spoFunctionList = ("AddRemove-SubWeb")
+$spoFunctionList = ("Add-NewSubWeb", "Remove-SubWeb")
+# $spoFunctionList = ("AddRemove-SubWeb")
 ############################################################
 
 
@@ -109,107 +108,31 @@ function Connect-RandomSPOUser {([string]$randomUser)
 
 }
 
-function Add-NewSubWeb {
 
-    Write-Host "############################"
-    Write-Host "Adding some random subweb "
-    Write-Host "############################"
-
-    #Get a random site name from $subwebs
-
-    Write-Host "####################################################"
-    Write-Host "#"
-    Write-Host "# New random subweb is $randomSubWeb    "
-    Write-Host "#"
-    Write-Host "####################################################"
-    
-    if (Get-PnPWeb -Identity $randomSubWeb) {
-        Write-Host "$randomSubWeb Already exists.  This site will not be created"
-    }else{
-        Write-Host "$randomSubWeb does NOT exists.  $newUser will attempt to create this communications subsite."
-        New-PnPWeb -Title $randomSubWeb -Url $randomSubWeb  -Template "SITEPAGEPUBLISHING#0"
-        Start-Sleep -Seconds 20
-    }
-       
-        
-}
-
-function Remove-SubWeb {
-
-    Write-Host "############################"
-    Write-Host "Removing some random subweb "
-    Write-Host "############################"
-
-    #Get a random site name from $subwebs
-    Write-Host '$randomSubWeb = Get-Random $subwebs (Remove)'
-
-    Write-Host "##############################################################################"
-    Write-Host "#"
-    Write-Host "# New random subweb is $randomSubWeb    "
-    Write-Host "#"
-    Write-Host "##############################################################################"
-    
-    if (Get-PnPWeb -Identity $randomSubWeb) {
-        Write-Host "##############################################################################"
-        Write-Host "#"
-        Write-Host "# $randomSubWeb exists.  $newUser will remove this site"
-        Write-Host "#"
-        Write-Host "##############################################################################"
-        Remove-PnPWeb -Url $randomSubWeb -Force
-        Start-Sleep -Seconds 20
-    }else{
-        Write-Host "##############################################################################"
-        Write-Host "#"
-        Write-Host "# $randomSubWeb does not exist.  So we will just move on.  Deleting it would be like dividing by Zero."
-        Write-Host "#"
-        Write-Host "##############################################################################"
-    }
-        
-}
-
-
-function AddRemove-SubWeb {
-    Write-Host "Running AddRemove Function"
-    $randomSubWeb = "Charity"
-    $site = Get-PnPWeb -Identity $randomSubWeb
-    $site
-    if ($site){
-        Write-Host "True - Delete it"
-        Remove-PnPWeb -Url $randomSubWeb -Force
-
-    }else{
-        Write-Host "False - Create it"
-        New-PnPWeb -Title $randomSubWeb -Url $randomSubWeb  -Template "SITEPAGEPUBLISHING#0"
-
-
-    }
-    
-    Start-Sleep -s 10
-}
 
 ############################################################
 # This is where it all happens.
-function Start-SPORandomActivity {
-    # Start some random activity with a new admin.
-    for ($i=0; $i -le $userCycles; $i++){
-    # for ($i=0; $i -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $i++){
-        $newUser = Get-RandomSPOUser
-        Connect-RandomSPOUser -randomUser $newUser
+# function Start-SPORandomActivity {
+#     # Start some random activity with a new admin.
+#     for ($i=0; $i -le $userCycles; $i++){
+#     # for ($i=0; $i -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $i++){
+#         $newUser = Get-RandomSPOUser
+#         Connect-RandomSPOUser -randomUser $newUser
 
-        # Get a random function from the function list.
-        for ($x=0; $x -le (Get-Random -Minimum $minUserTasks -Maximum $maxUserTasks); $x++){
+#         # Get a random function from the function list.
+#         for ($x=0; $x -le (Get-Random -Minimum $minUserTasks -Maximum $maxUserTasks); $x++){
         
             
-            $randomSPOFunction = Get-Random -InputObject $spoFunctionList
-            Write-Host "***** Running $randomSPOFunction *****"
-            Invoke-Expression $randomSPOFunction
-        }
+#             $randomSPOFunction = Get-Random -InputObject $spoFunctionList
+#             Write-Host "***** Running $randomSPOFunction *****"
+#             Invoke-Expression $randomSPOFunction
+#         }
 
-        # Disconnect User and start again.
-        Disconnect-PnPOnline
+#         # Disconnect User and start again.
+#         Disconnect-PnPOnline
 
-    }
-}
+#     }
+# }
 
 ############################################################
 # Connect as tenant admin to start the whole thing off.
@@ -219,7 +142,7 @@ Get-InitialConnectionSPO
 Get-SPOUsers
 
 # Let's make some random stuff happen
-Start-SPORandomActivity
+# Start-SPORandomActivity
 
 # Testing
 # Get-InitialConnectionSPO
@@ -229,4 +152,4 @@ Start-SPORandomActivity
 # $randomSPOFunction = Get-Random -InputObject $spoFunctionList
 # Invoke-Expression $randomSPOFunction
 
-# if (Get-PnPSubWebs -Identity $randomSubWeb.Title){Write-Host "$randomSubWeb Exists"}else{Write-Host "$randomSubWeb done NOT Exists"}
+# if (Get-PnPSubWebs -Identity $randomSubWeb){Write-Host "$randomSubWeb Exists"}else{Write-Host "$randomSubWeb done NOT Exists"}
