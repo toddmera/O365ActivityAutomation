@@ -3,26 +3,36 @@
 $tenantName = 'M365x109645'
 
 # $tenantName = "put password here if you like.  You will have to comment out the line below and uncomment this one"
-$tenantPassword = Read-Host "Enter you tenant password"
+# $tenantPassword = Read-Host "Enter you tenant password"
+$tenantPassword = "q021Q8ExYU"
 
 # Subwebs to create
-$subwebs = ("Product_Research", "Charity", "Carbon_Zero_Project", "Contoso_Softball_Team")
+$subwebs = ("ProductResearch", "Charity", "CarbonZeroProject", "ContosoSoftballTeam","CorpNews")
+$spoSiteDesction = "This site was created by a script."
 
-# Number of cycles to pick random admin and perform tasks
-$adminCycles = 50
+# Number of cycles to pick random user and perform tasks
+$userCycles = 10
 
-# Min task an admin will run during one cycle
-$minAdminTasks = 5
-# Max task an admin will run during one cycle
-$maxAdminTasks = 10
-
+# Min task an user will run during one cycle
+$minUserTasks = 5
+# Max task an user will run during one cycle
+$maxUserTasks = 10
 ############################################################
+$randomSubWeb = ""
 
 ############################################################
 # SharePoint Sites, etc.
 
-$AdminSiteURL = "https://$tenantName-admin.sharepoint.com/"
+# $AdminSiteURL = "https://$tenantName-admin.sharepoint.com/"
 $CompanySiteURL = "https://$tenantName.sharepoint.com/"
+############################################################
+
+
+############################################################
+# Function list.  We will randomly run these as different users.
+# $spoFunctionList = ("Add-NewSubWeb", "Remove-SubWeb")
+$spoFunctionList = ("AddRemove-SubWeb")
+############################################################
 
 
 function Get-InitialConnectionSPO {
@@ -59,21 +69,13 @@ function Get-InitialConnectionSPO {
 
 }
 
-function Connect-RandomSPOUser {
-    $pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
-    $AzureSPOLCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($newUser, $pass)
- 
-    Connect-PNPOnline $CompanySiteURL -Credential $AzureSPOLCreds
-
-}
-
 function Get-SPOUsers {
     <#
    .SYNOPSIS
-   Get-SPOUsers - Returns a list of SPO users with non-blank email address.
+   Get-SPOUsers - Returns a list of SPO users with non-blank email address to $spoUsers.
 
    .DESCRIPTION 
-   Get-SPOUsers - Returns a list of users.
+   Get-SPOUsers - Call once and beggining of script to get a list of users.  Returns a list of users.
 
    .EXAMPLE
     Get-SPOUsers
@@ -84,8 +86,10 @@ function Get-SPOUsers {
    * Website:	http://Quest.com
 
    #>
-   # Get a list of user from the $AdminRoleName and return list
-   $spousers = Get-PnPUser | ? Email -ne ""
+   # Get a list of user and return list
+   $spoUsers = Get-PnPUser | Where-Object Email -ne ""
+   Return $spoUsers
+   
 }
 
 function Get-RandomSPOUser {
@@ -97,19 +101,21 @@ function Get-RandomSPOUser {
 
 }
 
-function Start-RandomSPOActivity {
-
-
-    $newUser = Get-RandomSPOUser
-    $newUser
-    Connect-RandomSPOUser
+function Connect-RandomSPOUser {([string]$randomUser)
+    $pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
+    $AzureSPOLCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($newUser, $pass)
+ 
+    Connect-PNPOnline $CompanySiteURL -Credential $AzureSPOLCreds
 
 }
 
 function Add-NewSubWeb {
 
+    Write-Host "############################"
+    Write-Host "Adding some random subweb "
+    Write-Host "############################"
+
     #Get a random site name from $subwebs
-    $randomSubWeb = Get-Random $subwebs
 
     Write-Host "####################################################"
     Write-Host "#"
@@ -117,19 +123,25 @@ function Add-NewSubWeb {
     Write-Host "#"
     Write-Host "####################################################"
     
-    if (Get-PnPSubWebs -Identity $randomSubWeb.Title) {
+    if (Get-PnPWeb -Identity $randomSubWeb) {
         Write-Host "$randomSubWeb Already exists.  This site will not be created"
     }else{
-        Write-Host "$randomSubWeb does NOT exists.  Mr. Robot will attempt to create this communications subsite."
-        New-PnPWeb -Title $randomSubWeb -Url $randomSubWeb -Description $randomSubWeb -Locale 1033 -Template "SITEPAGEPUBLISHING#0"
+        Write-Host "$randomSubWeb does NOT exists.  $newUser will attempt to create this communications subsite."
+        New-PnPWeb -Title $randomSubWeb -Url $randomSubWeb  -Template "SITEPAGEPUBLISHING#0"
+        Start-Sleep -Seconds 20
     }
+       
         
 }
 
 function Remove-SubWeb {
 
+    Write-Host "############################"
+    Write-Host "Removing some random subweb "
+    Write-Host "############################"
+
     #Get a random site name from $subwebs
-    $randomSubWeb = Get-Random $subwebs
+    Write-Host '$randomSubWeb = Get-Random $subwebs (Remove)'
 
     Write-Host "##############################################################################"
     Write-Host "#"
@@ -137,22 +149,84 @@ function Remove-SubWeb {
     Write-Host "#"
     Write-Host "##############################################################################"
     
-    if (Get-PnPSubWebs -Identity $randomSubWeb) {
+    if (Get-PnPWeb -Identity $randomSubWeb) {
         Write-Host "##############################################################################"
-        Write-Host "$randomSubWeb exists.  Ms. Pacwoman will remove this site"
+        Write-Host "#"
+        Write-Host "# $randomSubWeb exists.  $newUser will remove this site"
+        Write-Host "#"
         Write-Host "##############################################################################"
         Remove-PnPWeb -Url $randomSubWeb -Force
+        Start-Sleep -Seconds 20
     }else{
         Write-Host "##############################################################################"
-        Write-Host "$randomSubWeb does not exist.  So we will just move on.  Deleting it would be like dividing by Zero."
+        Write-Host "#"
+        Write-Host "# $randomSubWeb does not exist.  So we will just move on.  Deleting it would be like dividing by Zero."
+        Write-Host "#"
         Write-Host "##############################################################################"
     }
         
 }
 
+
+function AddRemove-SubWeb {
+    Write-Host "Running AddRemove Function"
+    $randomSubWeb = "Charity"
+    $site = Get-PnPWeb -Identity $randomSubWeb
+    $site
+    if ($site){
+        Write-Host "True - Delete it"
+        Remove-PnPWeb -Url $randomSubWeb -Force
+
+    }else{
+        Write-Host "False - Create it"
+        New-PnPWeb -Title $randomSubWeb -Url $randomSubWeb  -Template "SITEPAGEPUBLISHING#0"
+
+
+    }
+    
+    Start-Sleep -s 10
+}
+
+############################################################
+# This is where it all happens.
+function Start-SPORandomActivity {
+    # Start some random activity with a new admin.
+    for ($i=0; $i -le $userCycles; $i++){
+    # for ($i=0; $i -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $i++){
+        $newUser = Get-RandomSPOUser
+        Connect-RandomSPOUser -randomUser $newUser
+
+        # Get a random function from the function list.
+        for ($x=0; $x -le (Get-Random -Minimum $minUserTasks -Maximum $maxUserTasks); $x++){
+        
+            
+            $randomSPOFunction = Get-Random -InputObject $spoFunctionList
+            Write-Host "***** Running $randomSPOFunction *****"
+            Invoke-Expression $randomSPOFunction
+        }
+
+        # Disconnect User and start again.
+        Disconnect-PnPOnline
+
+    }
+}
+
 ############################################################
 # Connect as tenant admin to start the whole thing off.
-InitialConnectionSPO
+Get-InitialConnectionSPO
+
+# Get a list of users to play with.
+Get-SPOUsers
 
 # Let's make some random stuff happen
-# Start-RandomSPOActivity
+Start-SPORandomActivity
+
+# Testing
+# Get-InitialConnectionSPO
+# Get-SPOUsers
+# $newUser = Get-RandomSPOUser
+# Connect-RandomSPOUser -randomUser $newUser
+# $randomSPOFunction = Get-Random -InputObject $spoFunctionList
+# Invoke-Expression $randomSPOFunction
+
+# if (Get-PnPSubWebs -Identity $randomSubWeb.Title){Write-Host "$randomSubWeb Exists"}else{Write-Host "$randomSubWeb done NOT Exists"}

@@ -13,7 +13,7 @@ $minAdminTasks = 5
 # Max task an admin will run during one cycle
 $maxAdminTasks = 10
 
-# $tenantName = "put password here if you like.  You will have to comment out the line below and uncomment this one"
+# $tenantPassword = "put password here if you like.  You will have to comment out the line below and uncomment this one"
 $tenantPassword = Read-Host "Enter you tenant password"
 ############################################################
 
