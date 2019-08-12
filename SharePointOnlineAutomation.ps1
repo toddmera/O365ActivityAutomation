@@ -7,7 +7,7 @@ $tenantName = 'M365x109645'
 $tenantPassword = "q021Q8ExYU"
 
 # Subwebs to create
-$subwebs = ("ProductResearch", "Charity", "CarbonZeroProject", "ContosoSoftballTeam","CorpNews")
+$subwebs = ("ProductResearch", "Charity", "CarbonZeroProject", "ContosoSoftballTeam","CorpNews","Patents","SecurityIssues","Birthdays")
 $spoSiteDesction = "This site was created by a script."
 
 # Number of cycles to pick random user and perform tasks
@@ -101,8 +101,9 @@ function Get-RandomSPOUser {
 }
 
 function Connect-RandomSPOUser {([string]$randomUser)
+    $user = $randomUser
     $pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
-    $AzureSPOLCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($newUser, $pass)
+    $AzureSPOLCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($user, $pass)
  
     Connect-PNPOnline $CompanySiteURL -Credential $AzureSPOLCreds
 
@@ -176,7 +177,11 @@ Get-SPOUsers
 # New-PnPWeb -Title $sposubweb -Url $sposubweb -Description $spoSiteDesction -Locale 1033 -Template "COMMUNITYPORTAL#0"
 # Remove-PnPWeb -Url $sposubweb -Force
 function StartRandomActivity {
-    for ($i = 0; $i -lt 5; $i++) {
+    for ($i = 0; $i -lt 20; $i++) {
+        $newspouser = Get-RandomSPOUser
+        Write-Host "New user is: $newspouser"
+        Write-Host "_+_+_+_+_+_+_+_+_+_+_+_+"
+        Connect-RandomSPOUser -randomUser $newspouser
         CreateRemove-SubWeb
     }
     
@@ -189,3 +194,5 @@ function StartRandomActivity {
 # }else{
 #     Write-Host "It does NOT exist"
 # }
+
+StartRandomActivity
