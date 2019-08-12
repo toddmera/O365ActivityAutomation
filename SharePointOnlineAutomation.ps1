@@ -169,7 +169,7 @@ Get-SPOUsers
 
 
 New-PnPWeb -Title $sposubweb -Url $sposubweb -Description $spoSiteDesction -Locale 1033 -Template "COMMUNITYPORTAL#0"
-# Remove-PnPWeb -Url $sposubweb -Force
+Remove-PnPWeb -Url $sposubweb -Force
 # for ($i = 0; $i -lt 5; $i++) {
 #     $sposubweb = Get-RandomSubWeb
 # }
@@ -178,7 +178,7 @@ Get-PnPSubWebs -Identity $sposubweb
 Get-PnPSubWebs | Where-Object {$_.Title -eq $sposubweb}
 
 if ((Get-PnPSubWebs | Where-Object {$_.Title -eq $sposubweb}).Title) {
-    Write-Host "Does not exist"
+    Write-Host "This SubWeb DOES exist"
 }else{
-    Write-Host "It does exist"
+    Write-Host "It does NOT exist"
 }
