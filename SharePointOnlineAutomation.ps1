@@ -108,7 +108,18 @@ function Connect-RandomSPOUser {([string]$randomUser)
 
 }
 
+function Get-RandomSubWeb {
+        $sposubweb = Get-Random $subwebs
+        Return $sposubweb
+}
 
+function CreateRemove-SubWeb {
+    $sposubweb = Get-Random $subwebs
+
+    if (condition) {
+        
+    }
+}
 
 ############################################################
 # This is where it all happens.
@@ -153,3 +164,21 @@ Get-SPOUsers
 # Invoke-Expression $randomSPOFunction
 
 # if (Get-PnPSubWebs -Identity $randomSubWeb){Write-Host "$randomSubWeb Exists"}else{Write-Host "$randomSubWeb done NOT Exists"}
+
+
+
+
+New-PnPWeb -Title $sposubweb -Url $sposubweb -Description $spoSiteDesction -Locale 1033 -Template "COMMUNITYPORTAL#0"
+# Remove-PnPWeb -Url $sposubweb -Force
+# for ($i = 0; $i -lt 5; $i++) {
+#     $sposubweb = Get-RandomSubWeb
+# }
+
+Get-PnPSubWebs -Identity $sposubweb
+Get-PnPSubWebs | Where-Object {$_.Title -eq $sposubweb}
+
+if ((Get-PnPSubWebs | Where-Object {$_.Title -eq $sposubweb}).Title) {
+    Write-Host "Does not exist"
+}else{
+    Write-Host "It does exist"
+}
