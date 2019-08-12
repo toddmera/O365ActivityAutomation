@@ -115,9 +115,12 @@ function Get-RandomSubWeb {
 
 function CreateRemove-SubWeb {
     $sposubweb = Get-Random $subwebs
+    Write-Host "### New Subweb is: $sposubweb"
 
-    if (condition) {
-        
+    if ((Get-PnPSubWebs | Where-Object {$_.Title -eq $sposubweb}).Title) {
+        Write-Host "This SubWeb DOES exist"
+    }else{
+        Write-Host "It does NOT exist"
     }
 }
 
@@ -175,8 +178,8 @@ Get-SPOUsers
 # }
 
 
-if ((Get-PnPSubWebs | Where-Object {$_.Title -eq $sposubweb}).Title) {
-    Write-Host "This SubWeb DOES exist"
-}else{
-    Write-Host "It does NOT exist"
-}
+# if ((Get-PnPSubWebs | Where-Object {$_.Title -eq $sposubweb}).Title) {
+#     Write-Host "This SubWeb DOES exist"
+# }else{
+#     Write-Host "It does NOT exist"
+# }
