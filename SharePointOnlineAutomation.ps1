@@ -115,10 +115,12 @@ function Get-RandomSubWeb {
 }
 
 function CreateRemove-SubWeb {
+    Write-Host "-----Getting randm subweb-------"
+    Write-Host
     $sposubweb = Get-Random $subwebs
     Write-Host "### New Subweb is: $sposubweb"
-
-    if ((Get-PnPSubWebs | Where-Object {$_.Title -eq $sposubweb}).Title) {
+    Write-Host "++++++Lets see if this exists and do the opposite+++++"
+    if ((Get-PnPSubWebs -Recurse -Includes "Title" | Select-Object Title | Where-Object {$_.Title -eq $sposubweb}).Title) {
         Write-Host "$sposubweb SubWeb DOES exist so we can delete it!"
         Remove-PnPWeb -Url $sposubweb -Force
     }else{
@@ -182,7 +184,9 @@ function StartRandomActivity {
         Write-Host "New user is: $newspouser"
         Write-Host "_+_+_+_+_+_+_+_+_+_+_+_+"
         Connect-RandomSPOUser -randomUser $newspouser
+        Write-Host "User has been connected"
         CreateRemove-SubWeb
+        Disconnect-PnPOnline
     }
     
 }
@@ -195,4 +199,4 @@ function StartRandomActivity {
 #     Write-Host "It does NOT exist"
 # }
 
-StartRandomActivity
+# StartRandomActivity
