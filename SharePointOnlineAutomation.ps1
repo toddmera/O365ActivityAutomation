@@ -100,8 +100,17 @@ function Get-RandomSPOUser {
 
 }
 
-function Connect-RandomSPOUser {([string]$randomUser)
+function Connect-RandomSPOUser {
+    param (
+        [parameter(Mandatory)]
+        [string]$randomUser
+    )
     $user = $randomUser
+    Write-Host "------------------------------------------" 
+    Write-Host "Connecting new user: $user" 
+    Write-Host "------------------------------------------" 
+    Write-Host
+
     $pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
     $AzureSPOLCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($user, $pass)
  
@@ -120,7 +129,7 @@ function CreateRemove-SubWeb {
     $sposubweb = Get-Random $subwebs
     Write-Host "### New Subweb is: $sposubweb"
     Write-Host "++++++Lets see if this exists and do the opposite+++++"
-    if ((Get-PnPSubWebs -Recurse -Includes "Title" | Select-Object Title | Where-Object {$_.Title -eq $sposubweb}).Title) {
+    if ((Get-PnPSubWebs -Recurse -Includes "Title" | Where-Object {$_.Title -eq $sposubweb}).Title) {
         Write-Host "$sposubweb SubWeb DOES exist so we can delete it!"
         Remove-PnPWeb -Url $sposubweb -Force
     }else{
@@ -153,50 +162,23 @@ function CreateRemove-SubWeb {
 #     }
 # }
 
+
+
+function StartRandomActivity {
+    $newspouser = Get-Random $spousers
+    Connect-RandomSPOUser -randomUser $newspouser.Email
+    for ($i = 0; $i -lt 3; $i++) {
+        CreateRemove-SubWeb
+    }
+    
+}
+
 ############################################################
 # Connect as tenant admin to start the whole thing off.
 Get-InitialConnectionSPO
 
 # Get a list of users to play with.
-Get-SPOUsers
+$spousers = Get-SPOUsers
 
 # Let's make some random stuff happen
 # Start-SPORandomActivity
-
-# Testing
-# Get-InitialConnectionSPO
-# Get-SPOUsers
-# $newUser = Get-RandomSPOUser
-# Connect-RandomSPOUser -randomUser $newUser
-# $randomSPOFunction = Get-Random -InputObject $spoFunctionList
-# Invoke-Expression $randomSPOFunction
-
-# if (Get-PnPSubWebs -Identity $randomSubWeb){Write-Host "$randomSubWeb Exists"}else{Write-Host "$randomSubWeb done NOT Exists"}
-
-
-
-
-# New-PnPWeb -Title $sposubweb -Url $sposubweb -Description $spoSiteDesction -Locale 1033 -Template "COMMUNITYPORTAL#0"
-# Remove-PnPWeb -Url $sposubweb -Force
-function StartRandomActivity {
-    for ($i = 0; $i -lt 20; $i++) {
-        $newspouser = Get-RandomSPOUser
-        Write-Host "New user is: $newspouser"
-        Write-Host "_+_+_+_+_+_+_+_+_+_+_+_+"
-        Connect-RandomSPOUser -randomUser $newspouser
-        Write-Host "User has been connected"
-        CreateRemove-SubWeb
-        Disconnect-PnPOnline
-    }
-    
-}
-
-
-
-# if ((Get-PnPSubWebs | Where-Object {$_.Title -eq $sposubweb}).Title) {
-#     Write-Host "This SubWeb DOES exist"
-# }else{
-#     Write-Host "It does NOT exist"
-# }
-
-# StartRandomActivity
