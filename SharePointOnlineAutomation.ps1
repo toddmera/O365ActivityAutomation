@@ -28,6 +28,12 @@ $contactTitles = ("Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Mi
 $contactFirstNames = ("Lauran", "Flor", "Alexander", "Christine", "Lupita", "Jennine", "Rossie", "Laurel", "Vanda", "Cyril")
 $contactEmailSuffix = "@qsft.com"
 
+# This section for document library creation and file uploads.
+# File path where you have some docs:
+$myDocumentPath = "D:\github\docs"
+
+# List of document libraries to create
+$docLibraries = ("Product Research and Development", "ProjectX Design Documents", "Demo Resources and Tools", "Company Picnics")
 
 ############################################################
 
@@ -168,8 +174,31 @@ function CreateRemove-ContactList {
         Add-PnPListItem -List $spoContactList -Values @{"Title" = $contactTitle; "FirstName" = $contactFirstName; "Email" = $contactEmail}
 
     }
-    
 
+}
+
+function CreateRemove-DocumentLibraries {
+    # Let's get a random doc library name
+    $docLib = Get-Random $docLibraries
+
+    if (Get-PnPList -Includes "Title" -Identity $docLib) {
+        Write-Host "## $docLib DOES exist.  We will delete it."
+        Remove-PnPList -Identity $docLib -Force
+        
+    }else {
+        Write-Host "## $docLib does NOT exist.  We can create it and add some docs."
+        New-PnPList -Title $docLib -Template DocumentLibrary
+        if ((Get-ChildItem -File -Path $myDocumentPath | Measure-Object).Count -eq 0) {
+            Write-Host "Did not find any files in $myDocumentPath so we will move on."
+            
+        }else {
+            $doc = Get-Random (Get-ChildItem $myDocumentPath)
+            Write-Host "Adding $doc to $docLib"
+            Add-PnPFile -Path $doc.FullName -Folder $docLib
+            
+        }
+        
+    }
     
 }
 
@@ -209,7 +238,7 @@ function Start-RandomSPOActivity {
 }
 
 ############################################################
-# Connect as tenant admin to start the whole thing off.
+# Connect as tenant admin to start the whole thing off.    #
 Get-InitialConnectionSPO
 
 # Get a list of users to play with.
