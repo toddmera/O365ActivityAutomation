@@ -6,10 +6,6 @@ $tenantName = 'M365x109645'
 # $tenantPassword = Read-Host "Enter you tenant password"
 $tenantPassword = "q021Q8ExYU"
 
-# Subwebs to create
-$subwebs = ("ProductResearch", "Charity", "CarbonZeroProject", "ContosoSoftballTeam","CorpNews","Patents","SecurityIssues","Birthdays")
-$spoSiteDesction = "This site was created by a script."
-
 # Number of cycles to pick random user and perform tasks
 $userCycles = 10
 
@@ -18,6 +14,23 @@ $minUserTasks = 5
 # Max task an user will run during one cycle
 $maxUserTasks = 10
 ############################################################
+
+############################################################
+# Subwebs to create
+$subwebs = ("ProductResearch", "Charity", "CarbonZeroProject", "ContosoSoftballTeam","CorpNews","Patents","SecurityIssues","Birthdays")
+$spoSiteDesction = "This site was created by a script."
+
+# List of SharePoint contact lists to create (Apps)
+$spoContactsLists = ("SupportContacts", "SupplierContacts", "HRContacts")
+
+# List of contact items to create
+$contactTitles = ("Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller", "Wilson", "Hopsin", "Millen")
+$contactFirstNames = ("Lauran", "Flor", "Alexander", "Christine", "Lupita", "Jennine", "Rossie", "Laurel", "Vanda", "Cyril")
+$contactEmailSuffix = "@qsft.com"
+
+
+############################################################
+
 
 ############################################################
 # SharePoint Sites, etc.
@@ -118,13 +131,9 @@ function Connect-RandomSPOUser {
 
 }
 
-function Get-RandomSubWeb {
-        $sposubweb = Get-Random $subwebs
-        Return $sposubweb
-}
 
 function CreateRemove-SubWeb {
-    Write-Host "-----Getting randm subweb-------"
+    Write-Host "-----Getting random subweb-------"
     Write-Host
     $sposubweb = Get-Random $subwebs
     Write-Host "### New Subweb is: $sposubweb"
@@ -136,6 +145,32 @@ function CreateRemove-SubWeb {
         Write-Host "It does NOT exist.  Let's create this $sposubweb"
         New-PnPWeb -Title $sposubweb -Url $sposubweb -Description $spoSiteDesction -Locale 1033 -Template "COMMUNITYPORTAL#0"
     }
+}
+
+function CreateRemove-ContactList {
+    Write-Host "-----Getting random Contacts List -------"
+    Write-Host
+    $spoContactList = Get-Random $spoContactsLists
+    Write-Host "### New Contact List is: $spoContactList"
+    Write-Host "++++++Lets see if this exists and do the opposite+++++"
+    if (Get-PnPList -Includes "Title" -Identity $spoContactList ) {
+        Write-Host "### This contact list exists.  We will try to delete it."
+        Remove-PnPList -Identity $spoContactList -Force
+        
+    }else {
+        Write-Host "#### Contact List does not exist.  So let's add it and create some contacts."
+        New-PnPList -Title $spoContactList -Template Contacts
+        Start-Sleep -Seconds (Get-Random -Minimum 5 -Maximum 15)
+        Write-Host "### Let's add some contacts"
+        $contactTitle = Get-Random $contactTitles
+        $contactFirstName = Get-Random $contactFirstNames
+        $contactEmail = $contactTitle + "." + $contactFirstName + "@qsft.com"
+        Add-PnPListItem -List $spoContactList -Values @{"Title" = $contactTitle; "FirstName" = $contactFirstName; "Email" = $contactEmail}
+
+    }
+    
+
+    
 }
 
 ############################################################
@@ -164,11 +199,11 @@ function CreateRemove-SubWeb {
 
 
 
-function StartRandomActivity {
+function Start-RandomSPOActivity {
     $newspouser = Get-Random $spousers
     Connect-RandomSPOUser -randomUser $newspouser.Email
     for ($i = 0; $i -lt 3; $i++) {
-        CreateRemove-SubWeb
+        CreateRemove-ContactList
     }
     
 }
@@ -181,4 +216,4 @@ Get-InitialConnectionSPO
 $spousers = Get-SPOUsers
 
 # Let's make some random stuff happen
-# Start-SPORandomActivity
+Start-RandomSPOActivity
