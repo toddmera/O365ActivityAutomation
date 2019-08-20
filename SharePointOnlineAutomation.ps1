@@ -11,6 +11,8 @@ $tenantName = 'M365x109645'
 $tenantPassword = "q021Q8ExYU"
 
 # Number of cycles to pick random user and perform tasks.  Example, 5 would mean that 5 users will be randomly selected and connected to perform tasks.
+# With the below parameters set to $spoUserCycles = 20, $spoMinUserTasks = 1 and $spoMaxUserTasks = 10 the process takes about 30 min.
+
 #--- EDIT THIS ---#
 $spoUserCycles = 20
 
@@ -48,7 +50,7 @@ $docLibraries = ("Product Research and Development", "ProjectX Design Documents"
 ############################################################
 # SharePoint Sites, etc.
 
-# $AdminSiteURL = "https://$tenantName-admin.sharepoint.com/"
+$AdminSiteURL = "https://$tenantName-admin.sharepoint.com/"
 $CompanySiteURL = "https://$tenantName.sharepoint.com/"
 
 $tenant = $tenantName + ".onmicrosoft.com"
@@ -143,7 +145,7 @@ function Connect-RandomSPOUser {
     $AzureSPOLCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($user, $pass)
     
     Write-Host "#--- Now trying to connnect new user with Connect-PNPOnline ---#"
-    Connect-PNPOnline $CompanySiteURL -Tenant $tenant  -Credential $AzureSPOLCreds
+    Connect-PNPOnline $CompanySiteURL -TenantAdminUrl $AdminSiteURL -Credential $AzureSPOLCreds
 
 }
 
