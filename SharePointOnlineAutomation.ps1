@@ -2,19 +2,21 @@
 # Tenant Information
 #  You need to edit a few items.  Look for #--- EDIT THIS ---#
 
+# If you want to enter you tenant each time uncomment the line below and comment out line after.  Example: $tenantName = 'M365x109645'
 #--- EDIT THIS ---#
-$tenantName = 'M365x109645'
+# $tenantName = Read-Host "Enter you tenant password"
+$tenantName = 'M365x109645'  
 
-# If you want to enter you password each time uncomment the line below and comment out line after.
-# $tenantPassword = Read-Host "Enter you tenant password"
+# If you want to enter you password each time uncomment the line below and comment out line after.  Example: $tenantPassword = "qofmtur7f7"
 #--- EDIT THIS ---#
+# $tenantPassword = Read-Host "Enter you tenant password"
 $tenantPassword = "q021Q8ExYU"
 
 # Number of cycles to pick random user and perform tasks.  Example, 5 would mean that 5 users will be randomly selected and connected to perform tasks.
 # With the below parameters set to $spoUserCycles = 20, $spoMinUserTasks = 1 and $spoMaxUserTasks = 10 the process takes about 30 min.
 
 #--- EDIT THIS ---#
-$spoUserCycles = 20
+$spoUserCycles = 2
 
 # Min task an user will run during one cycle
 #--- EDIT THIS ---#
@@ -154,13 +156,13 @@ function CreateRemove-SubWeb {
     Write-Host "-----Getting random subweb-------"
     Write-Host
     $sposubweb = Get-Random $subwebs
-    Write-Host "### New Subweb is: $sposubweb"
-    Write-Host "++++++Lets see if this exists and do the opposite+++++"
+    Write-Host "#--- New Subweb is: $sposubweb" ---#
+    Write-Host "#--- Lets see if this exists and do the opposite ---#"
     if ((Get-PnPSubWebs -Includes "Title" | Where-Object {$_.Title -eq $sposubweb}).Title) {
-        Write-Host "$sposubweb SubWeb DOES exist so we can delete it!"
+        Write-Host "#--- $sposubweb SubWeb DOES exist so we can delete it! ---#" -BackgroundColor Red -ForegroundColor Yellow
         Remove-PnPWeb -Url $sposubweb -Force
     }else{
-        Write-Host "It does NOT exist.  Let's create $sposubweb subsite"
+        Write-Host "#--- It does NOT exist.  Let's create $sposubweb subsite ---#"  -BackgroundColor Red -ForegroundColor Yellow
         New-PnPWeb -Title $sposubweb -Url $sposubweb -Description $spoSiteDesction -Locale 1033 -Template "PROJECTSITE#0"
     }
 }
@@ -169,17 +171,17 @@ function CreateRemove-ContactList {
     Write-Host "-----Getting random Contacts List -------"
     Write-Host
     $spoContactList = Get-Random $spoContactsLists
-    Write-Host "### New Contact List is: $spoContactList"
-    Write-Host "++++++Lets see if this exists and do the opposite+++++"
+    Write-Host "#--- New Contact List is: $spoContactList ---#"
+    Write-Host "#--- Lets see if this exists and do the opposite ---#"
     if (Get-PnPList -Includes "Title" -Identity $spoContactList ) {
-        Write-Host "### This contact list exists.  We will try to delete it."
+        Write-Host "#--- This contact list exists.  We will try to delete it. ---#" -BackgroundColor Blue -ForegroundColor Black
         Remove-PnPList -Identity $spoContactList -Force
         
     }else {
-        Write-Host "#### Contact List does not exist.  So let's add it and create some contacts."
+        Write-Host "#--- Contact List does not exist.  So let's add it and create some contacts. ---#"  -BackgroundColor Blue -ForegroundColor Black
         New-PnPList -Title $spoContactList -Template Contacts
         Start-Sleep -Seconds (Get-Random -Minimum 5 -Maximum 15)
-        Write-Host "### Let's add some contacts"
+        Write-Host "#--- Let's add some contacts ---#"  -BackgroundColor Blue -ForegroundColor Black
         $contactTitle = Get-Random $contactTitles
         $contactFirstName = Get-Random $contactFirstNames
         $contactEmail = $contactTitle + "." + $contactFirstName + $contactEmailSuffix
@@ -195,18 +197,18 @@ function CreateRemove-DocumentLibraries {
     Write-Host "#--- New Document Library is $docLib ---#"
 
     if (Get-PnPList -Includes "Title" -Identity $docLib) {
-        Write-Host "## $docLib DOES exist.  We will delete it."
+        Write-Host "#--- $docLib DOES exist.  We will delete it. ---#" -BackgroundColor White -ForegroundColor Black
         Remove-PnPList -Identity $docLib -Force
         
     }else {
-        Write-Host "## $docLib does NOT exist.  We can create it and add some docs."
+        Write-Host "#--- $docLib does NOT exist.  We can create it and add some docs. ---#" -BackgroundColor White -ForegroundColor Black
         New-PnPList -Title $docLib -Template DocumentLibrary
         if ((Get-ChildItem -File -Path $myDocumentPath | Measure-Object).Count -eq 0) {
-            Write-Host "Did not find any files in $myDocumentPath so we will move on."
+            Write-Host "#--- Did not find any files in $myDocumentPath so we will move on. ---#"
             
         }else {
             $doc = Get-Random (Get-ChildItem -File -Path $myDocumentPath)
-            Write-Host "Adding $doc to $docLib"
+            Write-Host "#--- Adding $doc to $docLib ---#"
             Add-PnPFile -Path $doc.FullName -Folder $docLib
             
         }
@@ -275,4 +277,3 @@ $endTime = Get-Date
 $runDuration = $endTime - $startTime
 $totalMinutes =  $runDuration.TotalMinutes
 Write-Host "#--- This script took $totalMinutes minutes to run"
-
