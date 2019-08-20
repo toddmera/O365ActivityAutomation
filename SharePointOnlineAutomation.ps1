@@ -1,18 +1,25 @@
 ############################################################
 # Tenant Information
+#  You need to edit a few items.  Look for #--- EDIT THIS ---#
+
+#--- EDIT THIS ---#
 $tenantName = 'M365x109645'
 
-# $tenantName = "put password here if you like.  You will have to comment out the line below and uncomment this one"
+# If you want to enter you password each time uncomment the line below and comment out line after.
 # $tenantPassword = Read-Host "Enter you tenant password"
+#--- EDIT THIS ---#
 $tenantPassword = "q021Q8ExYU"
 
-# Number of cycles to pick random user and perform tasks
-$userCycles = 10
+# Number of cycles to pick random user and perform tasks.  Example, 5 would mean that 5 users will be randomly selected and connected to perform tasks.
+#--- EDIT THIS ---#
+$spoUserCycles = 20
 
 # Min task an user will run during one cycle
-$minUserTasks = 5
+#--- EDIT THIS ---#
+$spoMinUserTasks = 1
 # Max task an user will run during one cycle
-$maxUserTasks = 10
+#--- EDIT THIS ---#
+$spoMaxUserTasks = 10
 ############################################################
 
 ############################################################
@@ -43,13 +50,15 @@ $docLibraries = ("Product Research and Development", "ProjectX Design Documents"
 
 # $AdminSiteURL = "https://$tenantName-admin.sharepoint.com/"
 $CompanySiteURL = "https://$tenantName.sharepoint.com/"
+
+$tenant = $tenantName + ".onmicrosoft.com"
 ############################################################
 
 
 ############################################################
 # Function list.  We will randomly run these as different users.
-$spoFunctionList = ("Add-NewSubWeb", "Remove-SubWeb")
-# $spoFunctionList = ("AddRemove-SubWeb")
+$spoFunctionList = ("CreateRemove-SubWeb", "CreateRemove-ContactList", "CreateRemove-DocumentLibraries")
+
 ############################################################
 
 
@@ -126,14 +135,15 @@ function Connect-RandomSPOUser {
     )
     $user = $randomUser
     Write-Host "------------------------------------------" 
-    Write-Host "Connecting new user: $user" 
+    Write-Host "--- Connecting new user: $user ---" 
     Write-Host "------------------------------------------" 
     Write-Host
 
     $pass = ConvertTo-SecureString -String $tenantPassword -AsPlainText -Force
     $AzureSPOLCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($user, $pass)
- 
-    Connect-PNPOnline $CompanySiteURL -Credential $AzureSPOLCreds
+    
+    Write-Host "#--- Now trying to connnect new user with Connect-PNPOnline ---#"
+    Connect-PNPOnline $CompanySiteURL -Tenant $tenant  -Credential $AzureSPOLCreds
 
 }
 
@@ -144,12 +154,12 @@ function CreateRemove-SubWeb {
     $sposubweb = Get-Random $subwebs
     Write-Host "### New Subweb is: $sposubweb"
     Write-Host "++++++Lets see if this exists and do the opposite+++++"
-    if ((Get-PnPSubWebs -Recurse -Includes "Title" | Where-Object {$_.Title -eq $sposubweb}).Title) {
+    if ((Get-PnPSubWebs -Includes "Title" | Where-Object {$_.Title -eq $sposubweb}).Title) {
         Write-Host "$sposubweb SubWeb DOES exist so we can delete it!"
         Remove-PnPWeb -Url $sposubweb -Force
     }else{
-        Write-Host "It does NOT exist.  Let's create this $sposubweb"
-        New-PnPWeb -Title $sposubweb -Url $sposubweb -Description $spoSiteDesction -Locale 1033 -Template "COMMUNITYPORTAL#0"
+        Write-Host "It does NOT exist.  Let's create $sposubweb subsite"
+        New-PnPWeb -Title $sposubweb -Url $sposubweb -Description $spoSiteDesction -Locale 1033 -Template "PROJECTSITE#0"
     }
 }
 
@@ -170,7 +180,7 @@ function CreateRemove-ContactList {
         Write-Host "### Let's add some contacts"
         $contactTitle = Get-Random $contactTitles
         $contactFirstName = Get-Random $contactFirstNames
-        $contactEmail = $contactTitle + "." + $contactFirstName + "@qsft.com"
+        $contactEmail = $contactTitle + "." + $contactFirstName + $contactEmailSuffix
         Add-PnPListItem -List $spoContactList -Values @{"Title" = $contactTitle; "FirstName" = $contactFirstName; "Email" = $contactEmail}
 
     }
@@ -180,6 +190,7 @@ function CreateRemove-ContactList {
 function CreateRemove-DocumentLibraries {
     # Let's get a random doc library name
     $docLib = Get-Random $docLibraries
+    Write-Host "#--- New Document Library is $docLib ---#"
 
     if (Get-PnPList -Includes "Title" -Identity $docLib) {
         Write-Host "## $docLib DOES exist.  We will delete it."
@@ -192,11 +203,19 @@ function CreateRemove-DocumentLibraries {
             Write-Host "Did not find any files in $myDocumentPath so we will move on."
             
         }else {
-            $doc = Get-Random (Get-ChildItem $myDocumentPath)
+            $doc = Get-Random (Get-ChildItem -File -Path $myDocumentPath)
             Write-Host "Adding $doc to $docLib"
             Add-PnPFile -Path $doc.FullName -Folder $docLib
             
         }
+
+        Write-Host "#--- We are going to break the Role Inheritance ---#"
+        $doclibPermTarget = Get-PnPList -Includes "Title" -Identity $docLib
+        $doclibPermTarget.BreakRoleInheritance($true, $true)
+        $doclibPermTarget.Update()
+        $doclibPermTarget.Context.Load($doclibPermTarget)
+        $doclibPermTarget.Context.ExecuteQuery()
+        Write-Host "#--- Done.  We broke the inheritance ---#"
         
     }
     
@@ -204,40 +223,42 @@ function CreateRemove-DocumentLibraries {
 
 ############################################################
 # This is where it all happens.
-# function Start-SPORandomActivity {
-#     # Start some random activity with a new admin.
-#     for ($i=0; $i -le $userCycles; $i++){
-#     # for ($i=0; $i -le (Get-Random -Minimum $minAdminTasks -Maximum $maxAdminTasks); $i++){
-#         $newUser = Get-RandomSPOUser
-#         Connect-RandomSPOUser -randomUser $newUser
+function Start-SPORandomActivity {
+    # Start some random activity with a new admin.
+    for ($i=0; $i -le $spoUserCycles; $i++){
+        Write-Host "#--- User cycle $i of $spoUserCycles ---#"
+        $newSPOUser = Get-RandomSPOUser
+        Write-Host "#--- New user is $newSPOUser ---#"
+        Write-Host "#--- Let's try to connect $newSPOUser ---"
+        Connect-RandomSPOUser -randomUser $newSPOUser
+        Write-Host "#--- Cool, $newSPOUser is now connected" -BackgroundColor Cyan -ForegroundColor Yellow
 
-#         # Get a random function from the function list.
-#         for ($x=0; $x -le (Get-Random -Minimum $minUserTasks -Maximum $maxUserTasks); $x++){
-        
+        $randNumUserTasks = (Get-Random -Minimum $spoMinUserTasks -Maximum $spoMaxUserTasks)
+        # Get a random function from the function list and run is some semi-random number of times...
+        for ($x=0; $x -le $randNumUserTasks; $x++){
+            Write-Host "#--- This user will perform $randNumUserTasks tasks"
             
-#             $randomSPOFunction = Get-Random -InputObject $spoFunctionList
-#             Write-Host "***** Running $randomSPOFunction *****"
-#             Invoke-Expression $randomSPOFunction
-#         }
+            $randomSPOFunction = Get-Random -InputObject $spoFunctionList
+            Write-Host "***** Running $randomSPOFunction.  This is task $x of $randNumUserTasks *****"
+            Invoke-Expression $randomSPOFunction
 
-#         # Disconnect User and start again.
-#         Disconnect-PnPOnline
+            $sleepDuration = Get-Random -Minimum 4 -Maximum 10            
+            Write-Host "#--- I so tired, I need to sleep for $sleepDuration seconds ---#" -BackgroundColor DarkBlue -ForegroundColor White
+            Start-Sleep -Seconds $sleepDuration
+        }
 
-#     }
-# }
+        # Disconnect User and start again.
+        Write-Host "#--- Disconnecting $newSPOUser so we can start this again. ---#"
+        Disconnect-PnPOnline -Connection $AzureSPOLCreds
+        Write-Host "#--- $newSPOUser has been disconnected ---#"
 
-
-
-function Start-RandomSPOActivity {
-    $newspouser = Get-Random $spousers
-    Connect-RandomSPOUser -randomUser $newspouser.Email
-    for ($i = 0; $i -lt 3; $i++) {
-        CreateRemove-ContactList
     }
-    
 }
 
+
 ############################################################
+$startTime = Get-date
+
 # Connect as tenant admin to start the whole thing off.    #
 Get-InitialConnectionSPO
 
@@ -245,4 +266,11 @@ Get-InitialConnectionSPO
 $spousers = Get-SPOUsers
 
 # Let's make some random stuff happen
-Start-RandomSPOActivity
+Start-SPORandomActivity
+Write-Host "============ RUN IS COMPLETE =============="
+$endTime = Get-Date
+
+$runDuration = $endTime - $startTime
+$totalMinutes =  $runDuration.TotalMinutes
+Write-Host "#--- This script took $totalMinutes minutes to run"
+
