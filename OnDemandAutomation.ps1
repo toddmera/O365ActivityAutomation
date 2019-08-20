@@ -1,6 +1,6 @@
 ############################################################
 # Tenant Information
-$tenantName = 'M365x109645'
+$tenantName = 'TenantNameHere'
 $adminRoleName = 'Company Administrator'
 $forwardingSMTPEmail = 'SomeAddress@Quest.com'
 $sharedMailboxes = ("Sales Deptartment", "Marketing Department", "Purchasing Department", "'RandD Department'", "HR Department", "Development Department", "Support Department")
