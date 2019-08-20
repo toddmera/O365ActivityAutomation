@@ -5,12 +5,12 @@
 # If you want to enter you tenant each time uncomment the line below and comment out line after.  Example: $tenantName = 'M365x109645'
 #--- EDIT THIS ---#
 # $tenantName = Read-Host "Enter you tenant password"
-$tenantName = 'M365x109645'  
+$tenantName = 'TenatNameHere'  
 
 # If you want to enter you password each time uncomment the line below and comment out line after.  Example: $tenantPassword = "qofmtur7f7"
 #--- EDIT THIS ---#
 # $tenantPassword = Read-Host "Enter you tenant password"
-$tenantPassword = "q021Q8ExYU"
+$tenantPassword = "PasswordHere"
 
 # Number of cycles to pick random user and perform tasks.  Example, 5 would mean that 5 users will be randomly selected and connected to perform tasks.
 # With the below parameters set to $spoUserCycles = 20, $spoMinUserTasks = 1 and $spoMaxUserTasks = 10 the process takes about 30 min.
