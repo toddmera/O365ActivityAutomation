@@ -261,7 +261,7 @@ function Start-SPORandomActivity {
 
 
 ############################################################
-$startTime = Get-date
+$spoStartTime = Get-date
 
 # Connect as tenant admin to start the whole thing off.    #
 Get-InitialConnectionSPO
@@ -272,8 +272,8 @@ $spousers = Get-SPOUsers
 # Let's make some random stuff happen
 Start-SPORandomActivity
 Write-Host "============ RUN IS COMPLETE =============="
-$endTime = Get-Date
+$spoEndTime = Get-Date
 
-$runDuration = $endTime - $startTime
-$totalMinutes =  $runDuration.TotalMinutes
-Write-Host "#--- This script took $totalMinutes minutes to run"
+$spoRunDuration = $spoEndTime - $spoStartTime
+$spoTotalMinutes =  $spoRunDuration.TotalMinutes
+Write-Host "#--- This script took $spoTotalMinutes minutes to run"

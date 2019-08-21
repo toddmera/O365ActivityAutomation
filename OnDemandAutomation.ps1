@@ -1,4 +1,10 @@
 ############################################################
+# Some Prereqs...
+# Note:  I am running this on Windows 10
+# run: Set-ExecutionPolicy Unrestricted
+# on first run you may get prompted to install the NuGet provider.  Select YES.
+#
+############################################################
 # Tenant Information
 $tenantName = 'TenantNameHere'
 $adminRoleName = 'Company Administrator'
@@ -321,6 +327,8 @@ function Start-RandomActivity {
 }
 
 ############################################################
+$StartTime = Get-date
+
 # Connect as tenant admin to start the whole thing off.
 Get-InitialConnection
 # Get-PSSession
@@ -331,6 +339,12 @@ $companyAdmins | Format-Table
 
 Start-RandomActivity
 
+Write-Host "============ RUN IS COMPLETE =============="
+$endTime = Get-Date
+
+$runDuration = $endTime - $startTime
+$totalMinutes =  $runDuration.TotalMinutes
+Write-Host "#--- This script took $totalMinutes minutes to run"
 
 ############################################################
 
